@@ -9,6 +9,7 @@ Einrichtung
 2. Ausführen des Script vpn_setup.sh erzeugt 1000 Geräte in vtun und olsr
 3. Kopieren der erzeugten olsrd.conf und vtund.conf nach /etc/
 4. Anpassen der Datei vpn.php in www/ und festlegen der eigenen Informationen
+5. Kopieren der vpn.php /var/www/freifunk/vpn/
 4. Anpassen des Initscripts aus /etc-examples/init.d/vpn (Anpassen der Netzkonfiguration in func_start_olsr() und der vtun-Aufrufe in func_start_vpn()
 5. Kopieren des init-scripts nach /etc/init.d/
 6. Aufruf von /etc/init.d/vpn start

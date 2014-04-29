@@ -20,7 +20,7 @@ Beschreibt die möglichen Informationen und Felder, die ein Client erwartet:
 ```
 {
   "server" : "DNS-Name des Servers",
-  "maxmtu" : "Maximale MTU, die Server anbieten kann,
+  "maxmtu" : "Maximale MTU, die Server anbieten kann",
   "port_vtun_nossl_nolzo" : "Port der VTUN-Instanz, die ohne ssl und ohne lzo kompiliert wurde",
   "port_vtun_nossl_lzo" : "Port der VTUN-Instanz, die ohne ssl aber mit lzo kompiliert wurde",
   "clients" : "Anzahl der verbundenen Clients, wird vom php-script generiert"

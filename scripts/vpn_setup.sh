@@ -47,8 +47,8 @@ Node$NUMBER {
                 program "logger -p daemon.info -t vtund[helper] link_up tap$NUMBER:Node$NUMBER" wait;
                 program "ip link set dev tap$NUMBER down" wait;
                 program "ip link set dev tap$NUMBER address 02:ba:d1:de:$MACSUFFIX" wait;
-                program "ip address add $SERVERIP/30 dev tap36 label tap$NUMBER:Node$NUMBER" wait;
-                program "ip link set dev tap$NUMBER mtu 1500 up" wait;
+                program "ip address add $SERVERIP/30 dev tap$NUMBER label tap$NUMBER:Node$NUMBER" wait;
+                program "ip link set dev tap$NUMBER mtu 1450 up" wait;
         } ;
 
         down {

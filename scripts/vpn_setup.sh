@@ -10,6 +10,8 @@ VTUNDCONFHEAD="vtundhead.conf"
 OLSRDCONF="olsrd.conf"
 # olsrd.conf_head for individual server setting
 OLSRDCONFHEAD="olsrdhead.conf"
+# mtu for tap devices
+MTU=1450
 
 # write olsrd head
 cat "${OLSRDCONFHEAD}" > "${OLSRDCONF}"
@@ -48,7 +50,7 @@ Node$NUMBER {
                 program "ip link set dev tap$NUMBER down" wait;
                 program "ip link set dev tap$NUMBER address 02:ba:d1:de:$MACSUFFIX" wait;
                 program "ip address add $SERVERIP/30 dev tap$NUMBER label tap$NUMBER:Node$NUMBER" wait;
-                program "ip link set dev tap$NUMBER mtu 1450 up" wait;
+                program "ip link set dev tap$NUMBER mtu $MTU up" wait;
         } ;
 
         down {

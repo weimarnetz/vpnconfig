@@ -27,7 +27,28 @@ Beschreibt die möglichen Informationen und Felder, die ein Client erwartet:
   "clients" : "Anzahl der verbundenen Clients, wird vom php-script generiert"
 }
 ```
+IP-Schema
+=========
+Jeder VPN-Server bekommt ein /30-Netz aus dem Bereich der Knotennummer 1 (10.63.1.0/26) für das VTUN-Interface.
 
+```
+vpn1: 10.63.1.0/30
+vpn2: 10.63.1.4/30
+vpn3: 10.63.1.8/30
+vpn4: .12
+vpn5: .16
+vpn6: .20
+vpn7: .24
+vpn8: .28
+vpn9: .32
+vpn10: .36
+vpn11: .40
+vpn12: .44
+
+vpnvpn: 10.63.1.48/28 # .49-.62
+```
+
+Für die Verbindung der VPN-Server untereinander bauen wir ein tinc-Netz auf, das die Adressen aus dem letzten Netzbereich verwendet.
 
 Konzept
 =======

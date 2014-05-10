@@ -35,17 +35,17 @@ Jeder VPN-Server bekommt ein /30-Netz aus dem Bereich der Knotennummer 1 (10.63.
 vpn1: 10.63.1.0/30
 vpn2: 10.63.1.4/30
 vpn3: 10.63.1.8/30
-vpn4: .12
-vpn5: .16
-vpn6: .20
-vpn7: .24
-vpn8: .28
-vpn9: .32
-vpn10: .36
-vpn11: .40
-vpn12: .44
+vpn4: 10.63.1.12/30
+vpn5: 10.63.1.16/30
+vpn6: 10.63.1.20/30
+vpn7: 10.63.1.24/30
+vpn8: 10.63.1.28/30
+vpn9: 10.63.1.32/30
+vpn10: 10.63.1.36/30
+vpn11: 10.63.1.40/30
+vpn12: 10.63.1.44/30
 
-vpnvpn: 10.63.1.48/28 # .49-.62
+vpnvpn: 10.63.1.48/28	# .49 ... .62
 ```
 
 Für die Verbindung der VPN-Server untereinander bauen wir ein tinc-Netz auf, das die Adressen aus dem letzten Netzbereich verwendet.
@@ -84,9 +84,12 @@ Antwort kann so aussehen:
   "port_vtun_ssl_lzo": "5003",
   "maxmtu": "1452",
   "clients": "23",
+  "country": "DE",
 }
 
 Es können auch noch weitere Informationen des Servers aufgenommen
-werden, mir fallen im Moment nur keine weiteren ein.
+werden, mir fallen im Moment nur keine weiteren ein. Der country-code
+wird von http://en.wikipedia.org/wiki/ISO_3166-2 genommen. Auf diese
+Weise hat der Nutzer evtl. die Chance ein nichtdeutsches Youtube zu bekommen.
   3. Danach verbindet sich der Router wie gehabt und setzt die Routen und
 alles wird gut.

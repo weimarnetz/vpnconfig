@@ -55,12 +55,16 @@ zeigen lassen
 nach seiner Konfiguration. So können wir die Router schön dumm lassen
 und müssen kein Firmwareupdate machen, falls sich etwas ändert. Die
 Antwort kann so aussehen:
+
 {
-  "Server" : "vpn1.weimarnetz.de",
-  "Port_Vtun_noSsl_noLzo":"5001",
-  "Port_Vtun_noSsl_Lzo":"5002",
-  "maxMTU":"1452"
+  "server" : "vpn1.weimarnetz.de",
+  "port_vtun_nossl_nolzo": "5001",
+  "port_vtun_nossl_lzo": "5002",
+  "port_vtun_ssl_lzo": "5003",
+  "maxmtu": "1452",
+  "clients": "23",
 }
+
 Es können auch noch weitere Informationen des Servers aufgenommen
 werden, mir fallen im Moment nur keine weiteren ein.
   3. Danach verbindet sich der Router wie gehabt und setzt die Routen und

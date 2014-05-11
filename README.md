@@ -14,6 +14,18 @@ Einrichtung
 5. Kopieren des init-scripts nach /etc/init.d/
 6. Aufruf von /etc/init.d/vpn start
 
+VPN zwischen den Servern
+========================
+1. tinc installieren (je nach OS)
+2. Kopieren des Verzeichnisses tinc/wnvpn /etc/tinc/wnvpn
+3. Anpassung der Adressen in tinc-up und tinc-down nach dem IP-Schema (vpn1=.49, vpn2=50, vpn3=51, ...)
+4. In /etc/tinc/wnvpn/tinc.conf Namen des Servers eintragen (z.B. vpn3) und die Hosts angeben, zu denen eine Verbindung hergestellt werden soll (ConnectTo=vpn1)
+5. Erzeugen von privatem und öffentlichem Schlüssel mit ``sudo tincd -n wnvpn -K``, die Datei mit dem öffentlichen Schlüssel unter hosts sollte noch um die Adresse und der Port ergänzt werden, falls dieser vom Standardport abweicht
+6. Der öffentliche Schlüssel sollte in diesem Git-Repository abgelegt werden
+7. Eintragen von wnvpn in /etc/tinc/nets.boot, damit das wnvpn-Netz beim Start von tinc gestartet wird
+8. Start durch /etc/init.d/tinc start
+
+
 JSON-Format
 ===========
 Beschreibt die möglichen Informationen und Felder, die ein Client erwartet:

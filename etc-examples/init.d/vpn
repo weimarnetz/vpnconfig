@@ -19,6 +19,7 @@ func_start ()
 	
 	cp /etc/vtund.conf /var/www/freifunk/vpn/vtund_config.txt
 	cp /etc/olsrd.conf /var/www/freifunk/vpn/olsrd_config.txt
+	cp /etc/olsrd6.conf /var/www/freifunk/vpn/olsrd6_config.txt
 
 	func_start_vtun
 	sleep 10		# waiting for some stable conn's
@@ -45,6 +46,9 @@ func_start_olsr ()
 	ip address add 10.63.5.1/26 dev eth0:0
 
 	pidof olsrd >/dev/null || {
+		olsrd -f /etc/olsrd6.conf -d 0 || {
+			logger -p daemon.crit -t "olsrd6[$0]" "something went wrong during olsrd-start"
+		}
 		olsrd -f /etc/olsrd.conf -d 0 || {
 			logger -p daemon.crit -t "olsrd[$0]" "something went wrong during olsrd-start"
 		}

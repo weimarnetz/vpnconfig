@@ -62,6 +62,8 @@ vpnvpn: 10.63.1.48/28	# .49 ... .62
 
 Für die Verbindung der VPN-Server untereinander bauen wir ein tinc-Netz auf, das die Adressen aus dem letzten Netzbereich verwendet.
 
+Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.
+
 Konzept
 =======
 

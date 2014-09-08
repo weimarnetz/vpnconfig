@@ -1,4 +1,5 @@
 #!/bin/sh
 /sbin/ip link set dev $INTERFACE up
 /sbin/ip addr add dev $INTERFACE 10.63.1.xy/28 broadcast 10.63.1.63
+/sbin/ip -6 addr add dev $INTERFACE 2001:0bf7:1930:1fX::/64
 /sbin/ip link set mtu 1450 dev $INTERFACE

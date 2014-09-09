@@ -33,8 +33,8 @@ do
   MACSUFFIX=`printf "%04d" $NUMBER | sed 's/^\(.\{2\}\)/\1:/'`
   NUMBERINHEX=`echo "obase=16; $NUMBER" | bc `
   if [ "$NUMBER" -ge "256" ]; then
-    NUMBERINHEX=`echo "obase=16; $NUMBER" | bc |cut -c2-3 `
-    IPV6PREFIX="2001:0bf7:1931:"
+    NUMBERINHEX=`echo "obase=16; $NUMBER" | bc |sed 's/^.*\(.\)\(..\)$/\1:\2/g' `
+    IPV6PREFIX="2001:0bf7:193"
   fi
   IPV6="$IPV6PREFIX${NUMBERINHEX,,}$IPV6NETWORK"
 
@@ -78,14 +78,14 @@ Node$NUMBER {
                 program "ip link set dev tap$NUMBER down" wait;
                 program "ip link set dev tap$NUMBER address 02:ba:d1:de:$MACSUFFIX" wait;
                 program "ip address add $SERVERIP/30 dev tap$NUMBER" wait;
-                program "ip -6 address add $IPV6/$IPV6NETMASK dev tap$NUMBER" wait;
+                program "ip -6 address add $IPV6::2/$IPV6NETMASK dev tap$NUMBER" wait;
                 program "ip link set dev tap$NUMBER mtu $MTU up" wait;
         } ;
 
         down {
                 program "logger -p daemon.info -t vtund[helper] link_down tap$NUMBER:Node$NUMBER" ;
                 program "ip address del $SERVERIP/30 dev tap$NUMBER" wait;
-                program "ip -6 address del $IPV6/$IPV6NETMASK dev tap$NUMBER" wait;
+                program "ip -6 address del $IPV6::2/$IPV6NETMASK dev tap$NUMBER" wait;
                 program "ip link set dev tap$NUMBER down" wait;
         } ;
 }

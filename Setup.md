@@ -53,6 +53,7 @@ InterCity-VPN
 Webserver
 ---------
 * Installation Indexseite
+* Installation VPN-Status nach /var/www/freifunk/vpn/index.php
 * Installation Statusseite
 * Installation 404-Seite
 

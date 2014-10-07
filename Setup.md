@@ -28,8 +28,18 @@ Standardsoftware
 
 Monitoring
 ----------
+* xinetd installieren 
+ * ```check_mk``` nach ```/etc/xinetd.d/``` kopieren
+ * ```check_mk_agent``` nach ```/usr/bin/``` kopieren
 * Firewallregeln
-* xinet
+ * Zugriffe sollen nur auf den Monitoringserver bei @andibraeu beschränkt sein
+ * ```init.d/iptables``` nach ```/etc/init.d/iptables``` kopieren
+ * ```default/iptables``` nach ```/etc/default/iptables``` kopieren
+ * iptables-service aktivieren mit ```update-rc.d iptables defaults```
+* dyndns-Update für Monitoring-Service
+ * ```iptables_dyndns_update.py``` nach ```/usr/local/bin/``` kopieren
+ * crontab für root um diesen Eintrag ergänzen: ```*/10 * * * * /usr/local/bin/iptables_dyndns_update.py 2>&1 >/dev/null```
+* Monitoring muss nun noch am Server eingerichtet werden
 
 OLSR + vtun + innercity-vpn
 ---------------------------

@@ -43,7 +43,7 @@ func_usage ()
 func_start_olsr ()
 {
 	ip address del 10.63.30.249/30 dev eth0:0
-	ip address add 10.63.5.1/26 dev eth0:0
+	ip address add 10.63.9.1/26 dev eth0:0
 
 	pidof olsrd >/dev/null || {
 		olsrd -f /etc/olsrd6.conf -d 0 || {
@@ -65,7 +65,7 @@ func_start_vtun ()
 #		logger -p daemon.crit -t "vtund[$0]" "something went wrong during vtund-start"
 #	}
 
-	/usr/local/bin/vtund-nossl -f /etc/vtund.conf -P 5063 -s || {
+	/usr/local/bin/vtund-nossl -f /etc/vtund.conf -P 5001 -s || {
 
                 logger -p daemon.crit -t "vtund[$0]" "something went wrong during vtund-start"
 	}

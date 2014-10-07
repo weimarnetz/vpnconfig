@@ -23,6 +23,7 @@ Standardsoftware
 * build-essential
 * bison
 * flex
+* xinetd
 * zlib1g-dev
 
 Monitoring

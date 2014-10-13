@@ -48,7 +48,7 @@ OLSR + vtun + innercity-vpn
 * vtun kompilieren
  * ./configure --disable-zlib --disable-lzo --disable-ssl
  * make
- * /usr/bin/strip nach /usr/local/bin/stripe verlinken
+ ** falls /usr/bin/strip fehlt, dann verlinken nach /usr/local/bin/strip
  * make install
 * Firewallregeln
 * github-Repo weimarnetz/vpnconfig verwenden

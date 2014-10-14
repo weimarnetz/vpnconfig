@@ -27,8 +27,8 @@ VPN zwischen den Servern
 5. Erzeugen von privatem und öffentlichem Schlüssel mit ``sudo tincd -n wnvpn -K``, die Datei mit dem öffentlichen Schlüssel unter hosts sollte noch um die Adresse und der Port ergänzt werden, falls dieser vom Standardport abweicht
 6. Der öffentliche Schlüssel sollte in diesem Git-Repository abgelegt werden
 ```
-	root@server:~/vpnconfig# echo "address=vpn4.weimarnetz.de" >tinc/wnvpn/hosts/vpn4
-	root@server:~/vpnconfig# echo "port = 656" >>tinc/wnvpn/hosts/vpn4
+	root@server:~/vpnconfig# echo "address = vpn4.weimarnetz.de" >tinc/wnvpn/hosts/vpn4
+	root@server:~/vpnconfig# echo "port = 658" >>tinc/wnvpn/hosts/vpn4
 	root@server:~/vpnconfig# cat /etc/tinc/wnvpn/rsa_key.pub >>tinc/wnvpn/hosts/vpn
 	root@server:~/vpnconfig# git add tinc/wnvpn/hosts/vpn4
 	root@server:~/vpnconfig# git commit -m "added vpn4"

@@ -37,6 +37,13 @@ VPN zwischen den Servern
 7. Eintragen von wnvpn in /etc/tinc/nets.boot, damit das wnvpn-Netz beim Start von tinc gestartet wird
 8. Start durch /etc/init.d/tinc start
 
+Ab und zu sollte man das lokale Repository abgleichen:
+```
+	root@server:~/vpnconfig# git pull
+	root@server:~/vpnconfig# cp -vR tinc/wnvpn/hosts/ /etc/tinc/wnvpn/hosts/
+	root@server:~/vpnconfig# /etc/init.d/tinc restart
+```
+
 
 JSON-Format
 ===========

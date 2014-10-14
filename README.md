@@ -17,11 +17,20 @@ Einrichtung
 VPN zwischen den Servern
 ========================
 1. tinc installieren (je nach OS)
-2. Kopieren des Verzeichnisses tinc/wnvpn /etc/tinc/wnvpn
+2. Kopieren des Verzeichnisses tinc/wnvpn nach  /etc/tinc/wnvpn
+	root@server:~/vpnconfig# mkdir /etc/tinc/wnvpn
+	root@server:~/vpnconfig# cp -vR tinc/wnvpn/* /etc/tinc/wnvpn
+
 3. Anpassung der Adressen in tinc-up und tinc-down nach dem IP-Schema (vpn1=.49, vpn2=50, vpn3=51, ...)
 4. In /etc/tinc/wnvpn/tinc.conf Namen des Servers eintragen (z.B. vpn3) und die Hosts angeben, zu denen eine Verbindung hergestellt werden soll (ConnectTo=vpn1)
 5. Erzeugen von privatem und öffentlichem Schlüssel mit ``sudo tincd -n wnvpn -K``, die Datei mit dem öffentlichen Schlüssel unter hosts sollte noch um die Adresse und der Port ergänzt werden, falls dieser vom Standardport abweicht
 6. Der öffentliche Schlüssel sollte in diesem Git-Repository abgelegt werden
+	root@server:~/vpnconfig# echo "address=vpn4.weimarnetz.de" >tinc/wnvpn/hosts/vpn4
+	root@server:~/vpnconfig# echo "port = 656" >>tinc/wnvpn/hosts/vpn4
+	root@server:~/vpnconfig# cat /etc/tinc/wnvpn/rsa_key.pub >>tinc/wnvpn/hosts/vpn
+	root@server:~/vpnconfig# git add tinc/wnvpn/hosts/vpn4
+	root@server:~/vpnconfig# git commit -m "added vpn4"
+	root@server:~/vpnconfig# git push
 7. Eintragen von wnvpn in /etc/tinc/nets.boot, damit das wnvpn-Netz beim Start von tinc gestartet wird
 8. Start durch /etc/init.d/tinc start
 

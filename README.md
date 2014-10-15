@@ -16,7 +16,7 @@ Einrichtung
 
 VPN zwischen den Servern
 ========================
-1. tinc installieren (je nach OS)
+1. tinc installieren (je nach OS, mindestens v1.0.19)
 2. Kopieren des Verzeichnisses tinc/wnvpn nach  /etc/tinc/wnvpn
 ```
 	root@server:~/vpnconfig# mkdir /etc/tinc/wnvpn

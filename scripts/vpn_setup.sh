@@ -42,27 +42,27 @@ do
 
 Interface "tap$NUMBER" {
   Ip4Broadcast $CLIENTIP 
-  HelloInterval 3.0           
-  HelloValidityTime 125.0     
-  TcInterval 2.0              
-  TcValidityTime 500.0        
-  MidInterval 25.0            
-  MidValidityTime 500.0       
-  HnaInterval 10.0            
-  HnaValidityTime 125.0
+  HelloInterval 4.0           
+  HelloValidityTime 150.0     
+  TcInterval 3.0              
+  TcValidityTime 600.0        
+  MidInterval 30.0            
+  MidValidityTime 600.0       
+  HnaInterval 12.0            
+  HnaValidityTime 150.0
 }
 EOF
 
   cat >> "${OLSRD6CONF}" <<EOF
 Interface "tap$NUMBER" {
-  HelloInterval 3.0           
-  HelloValidityTime 125.0     
-  TcInterval 2.0              
-  TcValidityTime 500.0        
-  MidInterval 25.0            
-  MidValidityTime 500.0       
-  HnaInterval 10.0            
-  HnaValidityTime 125.0
+  HelloInterval 40           
+  HelloValidityTime 150.0   
+  TcInterval 3.              
+  TcValidityTime 600.0        
+  MidInterval 30.0            
+  MidValidityTime 600.0       
+  HnaInterval 12.0            
+  HnaValidityTime 150.0
 }
 
 EOF

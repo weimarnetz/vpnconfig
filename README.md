@@ -77,6 +77,7 @@ vpn9: 10.63.1.32/30
 vpn10: 10.63.1.36/30
 vpn11: 10.63.1.40/30
 vpn12: 10.63.1.44/30
+       10.63.1.48...62/28 (fuer vpnvpn, siehe unten)
 ```
 
 Für die Verbindung der VPN-Server untereinander (10.63.1.48/28) bauen wir ein tinc-Netz auf,
@@ -103,11 +104,11 @@ vpnvpn14:    10.63.1.62/28
 Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.
 
 momentan ist folgendes aktiv:
-vpn1: weimarnetz.de = 77.87.48.19
-vpn2: leipzig = ???
-vpn3: weimarnetz/testVM = 77.87.48.35
-vpn4: Chicago/Bastian = 198.23.155.210
-vpn5: Duesseldorf/Bastian = 130.255.188.37
+vpn1: weimarnetz.de/Andi = 77.87.48.19
+vpn2: vpn1.leipzig.freifunk.net/UFO = 88.198.196.5
+vpn3: weimarnetz/Andi.testVM = 77.87.48.35
+vpn4: Chicago/Bastian = 198.23.155.210 (nossl,lzo)
+vpn5: Duesseldorf/Bastian = 130.255.188.37 (nossl,lzo)
 
 Konzept
 =======

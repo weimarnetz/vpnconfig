@@ -60,9 +60,11 @@ Beschreibt die möglichen Informationen und Felder, die ein Client erwartet:
 ```
 IP-Schema
 =========
-Jeder VPN-Server bekommt ein /30-Netz aus dem Bereich der Knotennummer 1 (10.63.1.0/26) für das VTUN-Interface.
+Jeder VPN-Server bekommt ein /30-Netz aus dem Bereich der Knotennummer 1 (10.63.1.0/26) für das
+dummy/ungenutze VTUN-Haupt-Interface. (MainIP im OLSR-jargon)
 
 ```
+maximal 12 Server:
 vpn1: 10.63.1.0/30
 vpn2: 10.63.1.4/30
 vpn3: 10.63.1.8/30
@@ -75,13 +77,37 @@ vpn9: 10.63.1.32/30
 vpn10: 10.63.1.36/30
 vpn11: 10.63.1.40/30
 vpn12: 10.63.1.44/30
-
-vpnvpn: 10.63.1.48/28	# .49 ... .62
 ```
 
-Für die Verbindung der VPN-Server untereinander bauen wir ein tinc-Netz auf, das die Adressen aus dem letzten Netzbereich verwendet.
+Für die Verbindung der VPN-Server untereinander (10.63.1.48/28) bauen wir ein tinc-Netz auf,
+das die Adressen aus dem letzten Netzbereich verwendet.
+
+```
+vpnvpn1:    10.63.1.49/28
+vpnvpn2:    10.63.1.50/28
+vpnvpn3:    10.63.1.51/28
+vpnvpn4:    10.63.1.52/28
+vpnvpn5:    10.63.1.53/28
+vpnvpn6:    10.63.1.54/28
+vpnvpn7:    10.63.1.55/28
+vpnvpn8:    10.63.1.56/28
+vpnvpn9:    10.63.1.57/28
+vpnvpn10:    10.63.1.58/28
+vpnvpn11:    10.63.1.59/28
+vpnvpn12:    10.63.1.60/28
+vpnvpn13:    10.63.1.61/28
+vpnvpn14:    10.63.1.62/28
+
+```
 
 Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.
+
+momentan ist folgendes aktiv:
+vpn1: weimarnetz.de = 77.87.48.19
+vpn2: leipzig = ???
+vpn3: weimarnetz/testVM = 77.87.48.35
+vpn4: Chicago/Bastian = 198.23.155.210
+vpn5: Duesseldorf/Bastian = 130.255.188.37
 
 Konzept
 =======

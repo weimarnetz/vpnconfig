@@ -104,11 +104,13 @@ vpnvpn14:    10.63.1.62/28
 Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.
 
 momentan ist folgendes aktiv (id: domain = ip -> admin)
+```
 vpn1: weimarnetz.de = 77.87.48.19 -> Andi
 vpn2: 2.v.weimarnetz.de = 176.9.46.7 -> Andi/UFO
 vpn3: weimarnetz/test.vm = 77.87.48.35 -> Andi
 vpn4: Chicago = 198.23.155.210 (nossl,lzo) -> Bastian
 vpn5: Duesseldorf = 130.255.188.37 (nossl,lzo) -> Bastian
+```
 
 Konzept
 =======

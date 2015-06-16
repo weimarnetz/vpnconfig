@@ -1,30 +1,38 @@
-Serverinstallation
-==================
+# Installation Weimarnetz VPN-Server
 
-Betriebssystem
---------------
-* Debian aufsetzen
-* Standardeinstellungen verwenden, aufpassen, dass man nicht aus versehen einen window manager installiert
-* Deutsche Spracheinstellungen
-* Netzwerk wie aus dem Wiki bzw. vpnconfig
-* Benutzer einrichten
-* sudo konfigurieren
-* ssh für root deaktivieren
+1. Debian 8 installieren
+2. Grundsätzliches Einrichten (Netzwerk, ssh, sudo, etc.)
+3. Abhängigkeiten installieren: apt-get install fail2ban apticron tinc zsh git build-essential bison flex xinetd zlib1g-dev monitoring-plugins vim php5 php5-curl nodejs npm
+4. OLSR herunterladen und installieren
+ * wget http://www.olsr.org/releases/0.9/olsrd-0.9.0.tar.gz
+ * tar xfvz olsrd-0.9.0.tar.gz
+ * cd olsrd-0.9.0
+ * make && make libs
+ * make install && make install_libs
+5. vtun herunterladen und installieren
+ * wget http://downloads.sourceforge.net/project/vtun/vtun/3.0.3/vtun-3.0.3.tar.gz
+ * tar xfvz vtun-3.0.3.tar.gz
+ * cd vtun-3.0.3
+ * ./configure --disable-zlib --disable-lzo --disable-ssl
+ * make
+ * make install
+6. kalua herunterladen und einrichten
+ * wget -O /tmp/tarball.tgz http://weimarnetz.de/freifunk/firmware/tarball.tgz
+ * cd /
+ * tar xfvz /tmp/tarball.tgz
+ * rm /bin/sh && ln -s /bin/bash /bin/sh
+ * ln -s /etc /var/etc
+ * /etc/kalua_init
+ * . /tmp/loader
+ * ```* * * * * test -e /tmp/loader || /etc/kalua_init && . /tmp/loader && _cron vpnserver 2>&1 >/dev/null``` in crontab für root eintragen
+7. web installieren (optional)
+ * Pfade je nach Webserver beachten, wenn möglich nach /var/www/ umbiegen
+ * git clone https://github.com/weimarnetz/web.git
+ * cd web
+ * sudo npm install -g bower
+ * bower install ausführen
+ * index.php, inc/, img/, status/, errors/ nach /var/www oder Pfad des Webservers kopieren
 
-Standardsoftware
-----------------
-* apticron
-* fail2ban
-* apache + php
-* tinc
-* quagga
-* zsh
-* git
-* build-essential
-* bison
-* flex
-* xinetd
-* zlib1g-dev
 
 Monitoring
 ----------
@@ -41,16 +49,6 @@ Monitoring
  * crontab für root um diesen Eintrag ergänzen: ```*/10 * * * * /usr/local/bin/iptables_dyndns_update.py 2>&1 >/dev/null```
 * Monitoring muss nun noch am Server eingerichtet werden
 
-OLSR + vtun + innercity-vpn
----------------------------
-* OLSR kompilieren
- * make && make libs && make install && make install_libs
-* vtun kompilieren
- * ./configure --disable-zlib --disable-lzo --disable-ssl
- * make
- ** falls /usr/bin/strip fehlt, dann verlinken nach /usr/local/bin/strip
- * make install
-* Firewallregeln
 * github-Repo weimarnetz/vpnconfig verwenden
  * tinc für innercity-vpn: 
   * nach /etc/tinc/wnvpn wechseln und mit tincd -K -c . Schlüssel generieren. Public Key ins Repo einchecken!

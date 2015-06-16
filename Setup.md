@@ -49,12 +49,6 @@ Monitoring
  * crontab für root um diesen Eintrag ergänzen: ```*/10 * * * * /usr/local/bin/iptables_dyndns_update.py 2>&1 >/dev/null```
 * Monitoring muss nun noch am Server eingerichtet werden
 
-* github-Repo weimarnetz/vpnconfig verwenden
- * tinc für innercity-vpn: 
-  * nach /etc/tinc/wnvpn wechseln und mit tincd -K -c . Schlüssel generieren. Public Key ins Repo einchecken!
-  * tinc-down und tinc-up an aktuelle IP-Config anpassen
-
-
 InterCity-VPN
 -------------
 

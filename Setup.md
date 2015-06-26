@@ -24,6 +24,7 @@
  * rm /bin/sh && ln -s /bin/bash /bin/sh
  * ln -s /etc /var/etc
  * /etc/kalua_init
+ * falls der vtun-Port vom Standard (5001) abweicht, trägt man ihn in ```/etc/kalua_uci``` ein: z.B. durch ```echo >>'/etc/kalua_uci' 'system.vpn.port=12345'```
  * . /tmp/loader
  * ```* * * * * test -e /tmp/loader || /etc/kalua_init && . /tmp/loader && _cron vpnserver 2>&1 >/dev/null``` in crontab für root eintragen
 7. web installieren (optional)

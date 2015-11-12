@@ -10,6 +10,7 @@
  * make && make libs
  * make install && make install_libs
  * link anlegen: ln -s /usr/local/sbin/olsrd /usr/sbin/olsrd
+ * Cronjob für olsrd: * * * * * /bin/pidof olsrd 1>/dev/null || (/usr/sbin/olsrd -f /etc/olsrd.conf && logger "No olsrd service running -> restart")
 5. vtun herunterladen und installieren
  * wget http://downloads.sourceforge.net/project/vtun/vtun/3.0.3/vtun-3.0.3.tar.gz
  * tar xfvz vtun-3.0.3.tar.gz

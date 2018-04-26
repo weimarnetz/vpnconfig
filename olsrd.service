@@ -1,0 +1,14 @@
+[Unit]
+Description=OLSRv1  
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/sbin/olsrd -nofork -f /etc/olsrd/olsrd.conf
+
+[Install]
+WantedBy=multi-user.target
+
+

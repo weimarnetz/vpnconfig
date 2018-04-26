@@ -1,0 +1,13 @@
+[Unit]
+Description=vtund VPN  
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/sbin/vtund -n -s -f /etc/vtund.conf -P5001
+
+[Install]
+WantedBy=multi-user.target
+

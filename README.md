@@ -93,3 +93,24 @@ Setup:
     // kann auch in rc.local: 
     # tc qdisc replace dev enp0s1 root fq_codel 
     
+## apache 
+
+Erstmal Apache weil der CGI-Scripte kann - geht auch mit PHP und co. 
+
+    # apt install apache2 
+    # a2enconf cgi 
+    
+    # cd vpnconfig 
+    # cp freifunk-vpn.sh /usr/lib/cgi-bin 
+    # chmod +x /usr/lib/cgi-bin/freifunk-vpn.sh 
+    
+In `/etc/apache/sites-enabled/000-default` das Script angeben: 
+
+    ...
+    Include conf-available/serve-cgi-bin.conf
+    ScriptAlias "/freifunk/vpn" /usr/lib/cgi-bin/freifunk-vpn.sh
+    ...
+
+    # systemctl restart apache2 
+    
+    

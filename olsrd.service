@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root
-ExecStart=/usr/local/sbin/olsrd -nofork -f /etc/olsrd/olsrd.conf
+ExecStart=/usr/sbin/olsrd -nofork -f /etc/olsrd.conf
 
 [Install]
 WantedBy=multi-user.target

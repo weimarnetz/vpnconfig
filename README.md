@@ -32,7 +32,8 @@ In `/etc/olsrd.conf` noch IPs und Interfaces anpassen
 
     # cp olsrd.service /etc/systemd/system/olsrd.service 
     # systemctl daemon-reload 
-    # systemctl start olsrd 
+    # systemctl start olsrd
+    # systemctl enable olsrd
     # journalctl -u olsrd -f 
 
 
@@ -73,6 +74,7 @@ Setup:
     # cp vtund.service /etc/systemd/system/vtund.service 
     # systemctl daemon-reload 
     # systemctl start vtund 
+    # systemctl enable vtund
     # journalctl -u vtund -f 
 
 ## iptables 

@@ -1,151 +1,118 @@
 vpnconfig
 =========
 
-VPN Serverconfig für Weimarnetz
+VPN Serverconfig für Weimarnetz (minimal edition - wip)
 
 Einrichtung
 ===========
 
-siehe [Anleitung](Setup.md)
+siehe [Konzept und Anleitung](concept_and_setup_server_with_tinc.md) für tinc 
 
-VPN zwischen den Servern
-========================
-1. tinc installieren (je nach OS, mindestens v1.0.19)
-2. Kopieren des Verzeichnisses tinc/wnvpn nach  /etc/tinc/wnvpn
-```
-	root@server:~/vpnconfig# mkdir /etc/tinc/wnvpn
-	root@server:~/vpnconfig# cp -vR tinc/wnvpn/* /etc/tinc/wnvpn
-```
-3. Anpassung der Adressen in tinc-up und tinc-down nach dem IP-Schema (vpn1=.49, vpn2=50, vpn3=51, ...)
-4. In /etc/tinc/wnvpn/tinc.conf Namen des Servers eintragen (z.B. vpn3) und die Hosts angeben, zu denen eine Verbindung hergestellt werden soll (ConnectTo=vpn1)
-5. Erzeugen von privatem und öffentlichem Schlüssel mit ``sudo tincd -n wnvpn -K``, die Datei mit dem öffentlichen Schlüssel unter hosts sollte noch um die Adresse und der Port ergänzt werden, falls dieser vom Standardport abweicht
-6. Der öffentliche Schlüssel sollte in diesem Git-Repository abgelegt werden
-```
-	root@server:~/vpnconfig# echo "address = vpn4.weimarnetz.de" >tinc/wnvpn/hosts/vpn4
-	root@server:~/vpnconfig# echo "port = 658" >>tinc/wnvpn/hosts/vpn4
-	root@server:~/vpnconfig# cat /etc/tinc/wnvpn/rsa_key.pub >>tinc/wnvpn/hosts/vpn
-	root@server:~/vpnconfig# git add tinc/wnvpn/hosts/vpn4
-	root@server:~/vpnconfig# git commit -m "added vpn4"
-	root@server:~/vpnconfig# git push
-```
-7. Eintragen von wnvpn in /etc/tinc/nets.boot, damit das wnvpn-Netz beim Start von tinc gestartet wird
-8. Start durch /etc/init.d/tinc start
+hier nur olsr, vtun und iptables 
 
-Ab und zu sollte man das lokale Repository abgleichen:
-```
-	root@server:~/vpnconfig# git pull
-	root@server:~/vpnconfig# cp -vR tinc/wnvpn/hosts/ /etc/tinc/wnvpn/hosts/
-	root@server:~/vpnconfig# /etc/init.d/tinc restart
-```
+## requirements 
+
+    # apt install build-essential git bison automake flex iptables-persistent 
+
+## clone configs 
+
+    # git clone https://github.com/weimarnetz/vpnconfig.git 
+    # cd vpnconfig 
+    # git checkout minimal 
+
+## olsr 
+
+    # git clone https://github.com/OLSR/olsrd
+    # cd olsrd 
+    # make && make libs && make install && make install_libs 
+    # cd ../vpnconfig 
+    # cp olsrd.conf /etc/olsrd/olsrd.conf 
+
+In `/etc/olsrd.conf` noch IPs und Interfaces anpassen 
+
+    # cp olsrd.service /etc/systemd/system/olsrd.service 
+    # systemctl daemon-reload 
+    # systemctl start olsrd
+    # systemctl enable olsrd
+    # journalctl -u olsrd -f 
 
 
-JSON-Format
-===========
-Beschreibt die möglichen Informationen und Felder, die ein Client erwartet:
+## vtun 
 
-```
-{
-  "server" : "DNS-Name des Servers",
-  "maxmtu" : "Maximale MTU, die Server anbieten kann",
-  "port_vtun_nossl_nolzo" : "Port der VTUN-Instanz, die ohne ssl und ohne lzo kompiliert wurde",
-  "port_vtun_nossl_lzo" : "Port der VTUN-Instanz, die ohne ssl aber mit lzo kompiliert wurde",
-  "clients" : "Anzahl der verbundenen Clients, wird vom php-script generiert"
-}
-```
-IP-Schema
-=========
-Jeder VPN-Server bekommt ein /30-Netz aus dem Bereich der Knotennummer 1 (10.63.1.0/26) für das
-dummy/ungenutze VTUN-Haupt-Interface. (MainIP im OLSR-jargon)
+    # wget http://downloads.sourceforge.net/project/vtun/vtun/3.0.4/vtun-3.0.4.tar.gz
+    # tar -xzvf vtun-3.0.4.tar.gz 
+    # cd vtun-3.0.4 
 
-```
-maximal 12 Server:
-vpn1: 10.63.1.0/30
-vpn2: 10.63.1.4/30
-vpn3: 10.63.1.8/30
-vpn4: 10.63.1.12/30
-vpn5: 10.63.1.16/30
-vpn6: 10.63.1.20/30
-vpn7: 10.63.1.24/30
-vpn8: 10.63.1.28/30
-vpn9: 10.63.1.32/30
-vpn10: 10.63.1.36/30
-vpn11: 10.63.1.40/30
-vpn12: 10.63.1.44/30
-       10.63.1.48...62/28 (fuer vpnvpn, siehe unten)
+In `cfg_file.y` folgendes ändern: 
+
+```c 
+612 /* Clear the VTUN_NAT_HACK flag which are not relevant to the current operation mode */
+613 inline void clear_nat_hack_flags(int svr)
+614 {
 ```
 
-Für die Verbindung der VPN-Server untereinander (10.63.1.48/28) bauen wir ein tinc-Netz auf,
-das die Adressen aus dem letzten Netzbereich verwendet.
+zu 
 
-```
-vpnvpn1:    10.63.1.49/28
-vpnvpn2:    10.63.1.50/28
-vpnvpn3:    10.63.1.51/28
-vpnvpn4:    10.63.1.52/28
-vpnvpn5:    10.63.1.53/28
-vpnvpn6:    10.63.1.54/28
-vpnvpn7:    10.63.1.55/28
-vpnvpn8:    10.63.1.56/28
-vpnvpn9:    10.63.1.57/28
-vpnvpn10:    10.63.1.58/28
-vpnvpn11:    10.63.1.59/28
-vpnvpn12:    10.63.1.60/28
-vpnvpn13:    10.63.1.61/28
-vpnvpn14:    10.63.1.62/28
-
+```c
+612 /* Clear the VTUN_NAT_HACK flag which are not relevant to the current operation mode */
+613 extern inline void clear_nat_hack_flags(int svr)
+614 {
 ```
 
-Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.
+vtun kompilieren: 
 
-momentan ist folgendes aktiv (id: domain = ip -> admin)
-```
-vpn1: weimarnetz.de = 77.87.48.19 -> Andi
-vpn2: 2.v.weimarnetz.de = 176.9.46.7 -> Andi/UFO
-vpn3: weimarnetz/test.vm = 77.87.48.35 -> Andi
-vpn4: Chicago = 198.23.155.210 (nossl,lzo) -> Bastian
-vpn5: Duesseldorf = 130.255.188.37 (nossl,lzo) -> Bastian
-```
+    # aclocal 
+    # autoconf 
+    # ./configure --disable-zlib --disable-lzo --disable-ssl 
+    # ln -s /usr/bin/strip /usr/local/bin/strip
+    # make && make install 
 
-Konzept
-=======
+Setup: 
 
-1. VPN-Server
-  * Wir numerieren die DNS-Namen unserer Server durch,
-vpn1.weimarnetz.de .. vpnX.weimarnetz.de
-  * auf jedem der Server legen wir für jeden Router die Konfiguration
-schon im Vorfeld an, 1000 Tap-Devices, 1000 OLSR-Devices. Somit kann
-jeder Router ohne Neustart des VPNs auf dem Rootserver eine Verbindung
-aufbauen, die anderen Verbindungen werden nicht gestört
-2. Router
-  * das Tap-Device tap0 und die OLSR-Config wird standardmäßig
-eingerichtet, damit muss auch am Router nichts neu gestartet werden
-nachdem die Verbindung hergestellt wurde
-  * Durch die Anlage der Devices auf dem Rootserver ist auch die
-Registrierung nicht mehr notwendig
-3. Ablauf
-  1. Falls ein direkter Internetzugang vorliegt: Router pingt mit timeout
-von 250ms vpn1-vpn10 durch, dauert also 2,5 Sekunden. Der Server mit der
-schnellsten Antwortzeit gewinnt. 10 VPN-Server könnten wir
-perspektivisch einsetzen. Per DNS kann man die Namen auf andere Server
-zeigen lassen
-  2. Der Router muss sich zwar nicht registrieren, fragt den Server aber
-nach seiner Konfiguration. So können wir die Router schön dumm lassen
-und müssen kein Firmwareupdate machen, falls sich etwas ändert. Die
-Antwort kann so aussehen:
+    # cd ../vpnconfig 
+    # cp vtund.conf /etc/vtund.conf 
+    # cp vtund.service /etc/systemd/system/vtund.service 
+    # systemctl daemon-reload 
+    # systemctl start vtund 
+    # systemctl enable vtund
+    # journalctl -u vtund -f 
 
-{
-  "server" : "vpn1.weimarnetz.de",
-  "port_vtun_nossl_nolzo": "5001",
-  "port_vtun_nossl_lzo": "5002",
-  "port_vtun_ssl_lzo": "5003",
-  "maxmtu": "1452",
-  "clients": "23",
-  "country": "DE",
-}
+## iptables 
 
-Es können auch noch weitere Informationen des Servers aufgenommen
-werden, mir fallen im Moment nur keine weiteren ein. Der country-code
-wird von http://en.wikipedia.org/wiki/ISO_3166-2 genommen. Auf diese
-Weise hat der Nutzer evtl. die Chance ein nichtdeutsches Youtube zu bekommen.
-  3. Danach verbindet sich der Router wie gehabt und setzt die Routen und
-alles wird gut.
+    # iptables -t nat -A POSTROUTING -o enp0s1 -j MASQUERADE 
+
+`enp0s1` mit dem Netzwerk-Interface wo Internet rauskommt ersetzen z.B. `eth0` etc.pp. 
+
+    # iptables-save 
+
+
+## fq-codel 
+
+    # cat >> /etc/sysctl.d/99-fq_codel.conf <<EOF
+    net.core.default_qdisc=fq_codel
+    EOF
+    # sysctl -P 
+    // kann auch in rc.local: 
+    # tc qdisc replace dev enp0s1 root fq_codel 
+    
+## apache 
+
+Erstmal Apache weil der CGI-Scripte kann - geht auch mit PHP und co. 
+
+    # apt install apache2 
+    # a2enconf cgi 
+    
+    # cd vpnconfig 
+    # cp freifunk-vpn.sh /usr/lib/cgi-bin 
+    # chmod +x /usr/lib/cgi-bin/freifunk-vpn.sh 
+    
+In `/etc/apache/sites-enabled/000-default` das Script angeben: 
+
+    ...
+    Include conf-available/serve-cgi-bin.conf
+    ScriptAlias "/freifunk/vpn" /usr/lib/cgi-bin/freifunk-vpn.sh
+    ...
+
+    # systemctl restart apache2 
+    
+    

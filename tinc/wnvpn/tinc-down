@@ -1,0 +1,4 @@
+#!/bin/sh
+/sbin/ip addr del dev $INTERFACE 10.63.1.xy/28 broadcast 10.63.1.63
+/sbin/ip -6 addr del dev $INTERFACE 2001:0bf7:1930:1fX::/64
+/sbin/ip link set dev $INTERFACE down

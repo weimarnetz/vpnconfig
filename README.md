@@ -6,7 +6,7 @@ VPN Serverconfig für Weimarnetz (minimal edition - wip)
 Einrichtung
 ===========
 
-siehe `master` branch für tinc 
+siehe [Konzept und Anleitung](concept_and_setup_server_with_tinc.md) für tinc 
 
 hier nur olsr, vtun und iptables 
 

@@ -9,7 +9,7 @@ for i in `ls /sys/class/net/ | grep tap`;
  val2=`cat /sys/class/net/$i/statistics/rx_packets`; 
  echo $val2;
  if [ $val1 -eq $val2 ]; then 
-  echo Mist; 
+  echo "Mist"; 
   sudo kill `pgrep -f "$i "`; 
  fi  ;
 done

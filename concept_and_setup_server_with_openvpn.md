@@ -9,35 +9,98 @@ Einrichtung
 siehe [Anleitung](Setup.md)
 
 VPN zwischen den Servern
-========================
-1. tinc installieren (je nach OS, mindestens v1.0.19)
-2. Kopieren des Verzeichnisses tinc/wnvpn nach  /etc/tinc/wnvpn
-```
-	root@server:~/vpnconfig# mkdir /etc/tinc/wnvpn
-	root@server:~/vpnconfig# cp -vR tinc/wnvpn/* /etc/tinc/wnvpn
-```
-3. Anpassung der Adressen in tinc-up und tinc-down nach dem IP-Schema (vpn1=.49, vpn2=50, vpn3=51, ...)
-4. In /etc/tinc/wnvpn/tinc.conf Namen des Servers eintragen (z.B. vpn3) und die Hosts angeben, zu denen eine Verbindung hergestellt werden soll (ConnectTo=vpn1)
-5. Erzeugen von privatem und öffentlichem Schlüssel mit ``sudo tincd -n wnvpn -K``, die Datei mit dem öffentlichen Schlüssel unter hosts sollte noch um die Adresse und der Port ergänzt werden, falls dieser vom Standardport abweicht
-6. Der öffentliche Schlüssel sollte in diesem Git-Repository abgelegt werden
-```
-	root@server:~/vpnconfig# echo "address = vpn4.weimarnetz.de" >tinc/wnvpn/hosts/vpn4
-	root@server:~/vpnconfig# echo "port = 658" >>tinc/wnvpn/hosts/vpn4
-	root@server:~/vpnconfig# cat /etc/tinc/wnvpn/rsa_key.pub >>tinc/wnvpn/hosts/vpn
-	root@server:~/vpnconfig# git add tinc/wnvpn/hosts/vpn4
-	root@server:~/vpnconfig# git commit -m "added vpn4"
-	root@server:~/vpnconfig# git push
-```
-7. Eintragen von wnvpn in /etc/tinc/nets.boot, damit das wnvpn-Netz beim Start von tinc gestartet wird
-8. Start durch /etc/init.d/tinc start
+=======================
 
-Ab und zu sollte man das lokale Repository abgleichen:
+Da sich tinc zusammen mit OLSR als untauglich erwiesen hat, wurde die VPN-Verbindung zwischen den Servern auf OpenVPN umgestellt. Jeder VPN-Server baut mit dem zentralen OpenVPN-Server eine eigene Verbindung in einem eigenen Netzwerk auf. Der zentrale OpenVPN-Server verbindet diese Netzwerke mittels OLSR.
+
 ```
-	root@server:~/vpnconfig# git pull
-	root@server:~/vpnconfig# cp -vR tinc/wnvpn/hosts/ /etc/tinc/wnvpn/hosts/
-	root@server:~/vpnconfig# /etc/init.d/tinc restart
+                              +---------------+
+             port 11942       |               |
+        +---------------------+  vpn2         |
+        |                     |               |
+        |                     |  10.0.1.5/30  |
+        |                     |               |
+        v                     +---------------+
++-------+-------+
+|               |             +---------------+
+| weimarnetz.de |             |               |
+|               |  port 11943 |  vpn3         |
+|    openVPN    +<------------+               |
+|    Server     |             |  10.0.1.9/30  |
+|               |             |               |
+|    OLSR       |             +---------------+
++-------+-------+
+        ^                     +---------------+
+        |                     |               |
+        |                     |  vpn5         |
+        |    port 11945       |               |
+        +---------------------+  10.0.1.17/30 |
+                              |               |
+                              +---------------+
 ```
 
+Einrichtung
+-----------
+
+1. OpenVPN installieren
+2. Zertifikate erzeugen (TODO: wieder auf static key umstellen)
+3. Clientkonfiguration, z.B. abspeichern als innercityvpn.conf
+```
+dev tap1234
+tls-client
+ncp-disable
+# Gegenstelle
+remote 77.87.48.19
+port <PORT> # Port wird am OpenVPN Server definiert
+# Netzwerkkonfiguration
+ifconfig <IP ADDRESS> <NETMASK> # siehe vpnvpn-schema
+# Paketgroessen
+tun-mtu 1500 # ggf anpassen, falls der VPN-Server mit NAT arbeitet
+fragment 1300
+mssfix
+
+
+# Authentifizierungsmethode
+auth SHA1
+
+# Zertifikate
+ca certs/ca.crt
+cert certs/Zertifikat für Server
+key private/Private Key für Server
+
+# Verschlüsselungsmethode
+cipher AES-256-CBC
+```
+4. mit `systemctl enable openvpn@innercityvpn.service` und `systemctl start openvpn@innercityvpn.service` laden und starten
+5. tap device in olsrd.conf eintragen und olsrd neu starten
+6. auf OpenVPN-Server (weimarnetz.de), eine neue openvpn-config muss hinzugefügt und gestartet werden (siehe Punkt 4):
+```
+dev tap3 # ein TAP pro Tunnel
+# Port und Protokoll
+port 11943 # port pro Tunnel
+proto udp
+# Netzwerkkonfiguration
+mode server
+ifconfig <IP ADDRESS> <NETMASK> # siehe vpnvpn-schema
+tls-server 
+# Paketgroessen
+tun-mtu 1500
+fragment 1300
+mssfix
+# Authentifizierungsmethode
+auth SHA1
+# Zertifikate
+ca certs/ca.crt
+cert certs/weimarnetz.de.crt
+key private/weimarnetz.de.key
+
+# Diffie Hellman Parameter
+dh certs/dh.pem
+
+# Verschlüsselungsmethode
+cipher AES-256-CBC
+```
+6. tap devices in olsr-config aufnahmen und neu starten
 
 JSON-Format
 ===========
@@ -74,25 +137,15 @@ vpn12: 10.63.1.44/30
        10.63.1.48...62/28 (fuer vpnvpn, siehe unten)
 ```
 
-Für die Verbindung der VPN-Server untereinander (10.63.1.48/28) bauen wir ein tinc-Netz auf,
+Für die Verbindung der VPN-Server untereinander bauen wir ein tinc-Netz auf,
 das die Adressen aus dem letzten Netzbereich verwendet.
 
 ```
-vpnvpn1:    10.63.1.49/28
-vpnvpn2:    10.63.1.50/28
-vpnvpn3:    10.63.1.51/28
-vpnvpn4:    10.63.1.52/28
-vpnvpn5:    10.63.1.53/28
-vpnvpn6:    10.63.1.54/28
-vpnvpn7:    10.63.1.55/28
-vpnvpn8:    10.63.1.56/28
-vpnvpn9:    10.63.1.57/28
-vpnvpn10:    10.63.1.58/28
-vpnvpn11:    10.63.1.59/28
-vpnvpn12:    10.63.1.60/28
-vpnvpn13:    10.63.1.61/28
-vpnvpn14:    10.63.1.62/28
-
+vpnvpn1:    10.0.1.1/30
+vpnvpn2:    10.0.1.5/30
+vpnvpn3:    10.0.1.9/30
+vpnvpn4:    10.0.1.13/30
+vpnvpn5:    10.0.1.17/30
 ```
 
 Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.
@@ -102,8 +155,7 @@ momentan ist folgendes aktiv (id: domain = ip -> admin)
 vpn1: weimarnetz.de = 77.87.48.19 -> Andi
 vpn2: 2.v.weimarnetz.de = 176.9.46.7 -> Andi/UFO
 vpn3: weimarnetz/test.vm = 77.87.48.35 -> Andi
-vpn4: Chicago = 198.23.155.210 (nossl,lzo) -> Bastian
-vpn5: Duesseldorf = 130.255.188.37 (nossl,lzo) -> Bastian
+vpn5: hosteurope = 80.237.195.246 -> Andi 
 ```
 
 Konzept

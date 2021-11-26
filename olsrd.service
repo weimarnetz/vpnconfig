@@ -5,8 +5,10 @@ After=network.target
 [Service]
 Type=simple
 User=root
+Restart=always
+RestartSec=3
 WorkingDirectory=/root
-ExecStart=/usr/sbin/olsrd -nofork -f /etc/olsrd/olsrd.conf
+ExecStart=/usr/local/sbin/olsrd -nofork -f /etc/olsrd/olsrd.conf
 
 [Install]
 WantedBy=multi-user.target

@@ -141,11 +141,11 @@ Für die Verbindung der VPN-Server untereinander bauen wir ein tinc-Netz auf,
 das die Adressen aus dem letzten Netzbereich verwendet.
 
 ```
-vpnvpn1:    10.0.1.1/30
-vpnvpn2:    10.0.1.5/30
-vpnvpn3:    10.0.1.9/30
-vpnvpn4:    10.0.1.13/30
-vpnvpn5:    10.0.1.17/30
+vpnvpn1:    10.63.1.1/30
+vpnvpn2:    10.63.1.5/30
+vpnvpn3:    10.63.1.9/30
+vpnvpn4:    10.63.1.13/30
+vpnvpn5:    10.63.1.17/30
 ```
 
 Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.

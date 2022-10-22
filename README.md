@@ -12,7 +12,7 @@ hier nur olsr, vtun und iptables
 
 ## requirements 
 
-    # apt install build-essential git bison automake flex iptables-persistent 
+    # apt install build-essential git bison automake flex iptables-persistent libgps-dev 
 
 ## clone configs 
 
@@ -24,6 +24,7 @@ hier nur olsr, vtun und iptables
 
     # git clone https://github.com/OLSR/olsrd
     # cd olsrd 
+    # apply patch to prevent OLSR storms: patch -p1 < path-to-vpnconfig-repo/patches/olsr/009-olsrd-seqnr.patch
     # make && make libs && make install && make install_libs 
     # cd ../vpnconfig 
     # cp olsrd.conf /etc/olsrd/olsrd.conf 
@@ -42,22 +43,7 @@ In `/etc/olsrd.conf` noch IPs und Interfaces anpassen
     # wget http://downloads.sourceforge.net/project/vtun/vtun/3.0.4/vtun-3.0.4.tar.gz
     # tar -xzvf vtun-3.0.4.tar.gz 
     # cd vtun-3.0.4 
-
-In `cfg_file.y` folgendes ändern: 
-
-```c 
-612 /* Clear the VTUN_NAT_HACK flag which are not relevant to the current operation mode */
-613 inline void clear_nat_hack_flags(int svr)
-614 {
-```
-
-zu 
-
-```c
-612 /* Clear the VTUN_NAT_HACK flag which are not relevant to the current operation mode */
-613 extern inline void clear_nat_hack_flags(int svr)
-614 {
-```
+    # apply patch for nat hack: patch < ../vpnconfig/patches/001_vtun_nat_hack.patch 
 
 vtun kompilieren: 
 

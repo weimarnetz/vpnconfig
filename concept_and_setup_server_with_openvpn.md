@@ -11,96 +11,28 @@ siehe [Anleitung](Setup.md)
 VPN zwischen den Servern
 =======================
 
-Da sich tinc zusammen mit OLSR als untauglich erwiesen hat, wurde die VPN-Verbindung zwischen den Servern auf OpenVPN umgestellt. Jeder VPN-Server baut mit dem zentralen OpenVPN-Server eine eigene Verbindung in einem eigenen Netzwerk auf. Der zentrale OpenVPN-Server verbindet diese Netzwerke mittels OLSR.
+Da sich tinc zusammen mit OLSR als untauglich erwiesen hat, wurde die VPN-Verbindung zwischen den Servern zuerst auf OpenVPN und letztendlich auf wireguard umgestellt. Jeder VPN-Server baut mit dem zentralen Wireguard-Server eine eigene Verbindung in einem eigenen Netzwerk auf. Der zentrale Wireguard-Server verbindet diese Netzwerke mittels OLSR.
 
+```mermaid
+flowchart LR
+WG0[weimarnetz.de<br> Wireguard Server<br> OLSR]
+WG2[vpn2<br> 10.0.1.5/30]
+WG3[vpn3<br> 10.0.1.9/30]
+WG5[vpn5<br> 10.0.1.17/30]
+WG2-- Port 51192 -->WG0
+WG3-- Port 51193 -->WG0
+WG5-- Port 51195 -->WG0
 ```
-                              +---------------+
-             port 11942       |               |
-        +---------------------+  vpn2         |
-        |                     |               |
-        |                     |  10.0.1.5/30  |
-        |                     |               |
-        v                     +---------------+
-+-------+-------+
-|               |             +---------------+
-| weimarnetz.de |             |               |
-|               |  port 11943 |  vpn3         |
-|    openVPN    +<------------+               |
-|    Server     |             |  10.0.1.9/30  |
-|               |             |               |
-|    OLSR       |             +---------------+
-+-------+-------+
-        ^                     +---------------+
-        |                     |               |
-        |                     |  vpn5         |
-        |    port 11945       |               |
-        +---------------------+  10.0.1.17/30 |
-                              |               |
-                              +---------------+
-```
+
+Nachteilig bei Wireguard ist im Moment noch, dass auf dem zentralen Server für jede Verbindung eine Route (Allowed IPs) für ein IP-Netz angelegt wird. Das ist natürlich nicht überlappend möglich und der momentane Workaround ist, dass die Interfaces unterschiedliche große Netze beanspruchen (10.63.0.0/16, 10.62.0.0/15, etc.). Evtl. lässt sich das lösen, indem man mit IP Rules arbeitet.
 
 Einrichtung
 -----------
 
-1. OpenVPN installieren
-2. Zertifikate erzeugen (TODO: wieder auf static key umstellen)
-3. Clientkonfiguration, z.B. abspeichern als innercityvpn.conf
-```
-dev tap1234
-tls-client
-ncp-disable
-# Gegenstelle
-remote 77.87.48.19
-port <PORT> # Port wird am OpenVPN Server definiert
-# Netzwerkkonfiguration
-ifconfig <IP ADDRESS> <NETMASK> # siehe vpnvpn-schema
-# Paketgroessen
-tun-mtu 1500 # ggf anpassen, falls der VPN-Server mit NAT arbeitet
-fragment 1300
-mssfix
-
-
-# Authentifizierungsmethode
-auth SHA1
-
-# Zertifikate
-ca certs/ca.crt
-cert certs/Zertifikat für Server
-key private/Private Key für Server
-
-# Verschlüsselungsmethode
-cipher AES-256-CBC
-```
-4. mit `systemctl enable openvpn@innercityvpn.service` und `systemctl start openvpn@innercityvpn.service` laden und starten
-5. tap device in olsrd.conf eintragen und olsrd neu starten
-6. auf OpenVPN-Server (weimarnetz.de), eine neue openvpn-config muss hinzugefügt und gestartet werden (siehe Punkt 4):
-```
-dev tap3 # ein TAP pro Tunnel
-# Port und Protokoll
-port 11943 # port pro Tunnel
-proto udp
-# Netzwerkkonfiguration
-mode server
-ifconfig <IP ADDRESS> <NETMASK> # siehe vpnvpn-schema
-tls-server 
-# Paketgroessen
-tun-mtu 1500
-fragment 1300
-mssfix
-# Authentifizierungsmethode
-auth SHA1
-# Zertifikate
-ca certs/ca.crt
-cert certs/weimarnetz.de.crt
-key private/weimarnetz.de.key
-
-# Diffie Hellman Parameter
-dh certs/dh.pem
-
-# Verschlüsselungsmethode
-cipher AES-256-CBC
-```
-6. tap devices in olsr-config aufnahmen und neu starten
+1. Wireguard installieren mit `apt install wireguard`
+2. Zertifikate in `/etc/wireguard` erzeugen: `wg genkey | tee privatekey | wg pubkey > publickey`
+3. Clientkonfiguration `wg0-innercity.conf` nach `/etc/wireguard` kopieren und privatekey sowie IP-Adressen anpassen. Der Public Key muss vom zentralen Server sein
+4. Auf dem zentralen Server muss eine Config mit dem Public Key angelegt werden.
 
 JSON-Format
 ===========

@@ -6,7 +6,7 @@ VPN Serverconfig für Weimarnetz (minimal edition - wip)
 Einrichtung
 ===========
 
-siehe [Konzept und Anleitung](concept_and_setup_server_with_tinc.md) für tinc 
+siehe [Konzept und Anleitung](concept_and_setup_server_with_wireguard.md) für wireguard 
 
 hier nur olsr, vtun und iptables 
 
@@ -63,7 +63,9 @@ Setup:
     # systemctl enable vtund
     # journalctl -u vtund -f 
 
-## iptables 
+## routing
+
+Alle Pakete, die ins Internet sollen, müssen wir entsprechend routen. Wir können z.B. Masquerading benutzen:
 
     # iptables -t nat -A POSTROUTING -o enp0s1 -j MASQUERADE 
 
@@ -71,6 +73,12 @@ Setup:
 
     # iptables-save 
 
+Oder Policy Routing nutzen:
+
+    # Neue Routingtabelle erstellen: echo 42 weimarnetz >> /etc/iproute2/rt_tables 
+    # ip route add default via ${route_vpn_gateway} dev ${dev} table weimarnetz
+    # ip rule add to 10.0.0.0/8 prio 30001 table main
+    # ip rule add from 10.63.0.0/16 prio 30010 table weimarnetz 
 
 ## fq-codel 
 
@@ -101,4 +109,6 @@ In `/etc/apache/sites-enabled/000-default` das Script angeben:
 
     # systemctl restart apache2 
     
-    
+## neighbors
+
+Das Script `neigh.sh` nach `/usr/local/bin/` kopieren. Dann kann man die OLSR-Nachbarn des Servers sehen.    

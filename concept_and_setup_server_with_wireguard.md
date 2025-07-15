@@ -1,135 +1,153 @@
-vpnconfig
-=========
+# VPN-Setup mit WireGuard und Policy Routing 🌐🔐📡
 
-VPN Serverconfig für Weimarnetz
+Dieses Setup beschreibt eine sternförmige VPN-Infrastruktur, bei der mehrere sogenannte „Spokes“ über WireGuard mit einem zentralen „Hub“ verbunden sind. Jeder Spoke kann theoretisch die gleichen Subnetze haben, da Clients beim Verbindungsaufbau per Round-Robin verteilt werden. Für das Routing wird Policy Routing eingesetzt. 🛣️🧭🗺️
 
-Einrichtung
-===========
+---
 
-siehe [Anleitung](Setup.md)
-
-VPN zwischen den Servern
-=======================
-
-Da sich tinc zusammen mit OLSR als untauglich erwiesen hat, wurde die VPN-Verbindung zwischen den Servern zuerst auf OpenVPN und letztendlich auf wireguard umgestellt. Jeder VPN-Server baut mit dem zentralen Wireguard-Server eine eigene Verbindung in einem eigenen Netzwerk auf. Der zentrale Wireguard-Server verbindet diese Netzwerke mittels OLSR.
+## Übersicht 🖼️📊📎
 
 ```mermaid
-flowchart LR
-WG0[weimarnetz.de<br> Wireguard Server<br> OLSR]
-WG2[vpn2<br> 10.0.1.5/30]
-WG3[vpn3<br> 10.0.1.9/30]
-WG5[vpn5<br> 10.0.1.17/30]
-WG2-- Port 51192 -->WG0
-WG3-- Port 51193 -->WG0
-WG5-- Port 51195 -->WG0
+graph TD
+  subgraph VPN
+    Hub[Hub 10.63.1.6]
+    WG2[Spoke wg2 10.63.1.5]
+    WG3[Spoke wg3 10.63.1.9]
+  end
+
+  WG2 -->|WireGuard 10.63.1.4/30| Hub
+  WG3 -->|WireGuard 10.63.1.8/30| Hub
+
+  WG2 -->|Clients 10.63.0.0/16 via fastd| ClientsWG2
+  WG3 -->|Clients 10.63.0.0/16 via fastd| ClientsWG3
 ```
 
-Nachteilig bei Wireguard ist im Moment noch, dass auf dem zentralen Server für jede Verbindung eine Route (Allowed IPs) für ein IP-Netz angelegt wird. Das ist natürlich nicht überlappend möglich und der momentane Workaround ist, dass die Interfaces unterschiedliche große Netze beanspruchen (10.63.0.0/16, 10.62.0.0/15, etc.). Evtl. lässt sich das lösen, indem man mit IP Rules arbeitet.
 
-Einrichtung
------------
+## IP-Adressübersicht 🗂️📡🖥️
 
-1. Wireguard installieren mit `apt install wireguard`
-2. Zertifikate in `/etc/wireguard` erzeugen: `wg genkey | tee privatekey | wg pubkey > publickey`
-3. Clientkonfiguration `wg0-innercity.conf` nach `/etc/wireguard` kopieren und privatekey sowie IP-Adressen anpassen. Der Public Key muss vom zentralen Server sein
-4. Auf dem zentralen Server muss eine Config mit dem Public Key angelegt werden.
+| Zweck                      | IP-Bereich   | Bemerkung                          |
+| -------------------------- | ------------ | ---------------------------------- |
+| fastd Interface auf Spokes | 10.63.0.0/16 | Clients über fastd, z.B. 10.63.0.x |
+| WireGuard Tunnel Spoke-Hub | 10.63.1.x/30 | Je Spoke ein /30-Netz für Tunnel   |
 
-JSON-Format
-===========
-Beschreibt die möglichen Informationen und Felder, die ein Client erwartet:
 
-```
-{
-  "server" : "DNS-Name des Servers",
-  "maxmtu" : "Maximale MTU, die Server anbieten kann",
-  "port_vtun_nossl_nolzo" : "Port der VTUN-Instanz, die ohne ssl und ohne lzo kompiliert wurde",
-  "port_vtun_nossl_lzo" : "Port der VTUN-Instanz, die ohne ssl aber mit lzo kompiliert wurde",
-  "clients" : "Anzahl der verbundenen Clients, wird vom php-script generiert"
-}
-```
-IP-Schema
-=========
-Jeder VPN-Server bekommt ein /30-Netz aus dem Bereich der Knotennummer 1 (10.63.1.0/26) für das
-dummy/ungenutze VTUN-Haupt-Interface. (MainIP im OLSR-jargon)
+## Routing Tables anlegen ⚙️🛣️🧾
 
-```
-maximal 12 Server:
-vpn1: 10.63.1.0/30
-vpn2: 10.63.1.4/30
-vpn3: 10.63.1.8/30
-vpn4: 10.63.1.12/30
-vpn5: 10.63.1.16/30
-vpn6: 10.63.1.20/30
-vpn7: 10.63.1.24/30
-vpn8: 10.63.1.28/30
-vpn9: 10.63.1.32/30
-vpn10: 10.63.1.36/30
-vpn11: 10.63.1.40/30
-vpn12: 10.63.1.44/30
-       10.63.1.48...62/28 (fuer vpnvpn, siehe unten)
+Damit Policy Routing funktioniert, müssen benutzerdefinierte Routing-Tabellen für die Spokes angelegt werden. Dies geschieht in der Datei `/etc/iproute2/rt_tables`:
+
+```bash
+echo "200 wg_2" | sudo tee -a /etc/iproute2/rt_tables
+echo "201 wg_3" | sudo tee -a /etc/iproute2/rt_tables
 ```
 
-Für die Verbindung der VPN-Server untereinander bauen wir ein tinc-Netz auf,
-das die Adressen aus dem letzten Netzbereich verwendet.
+Hierbei steht `200` und `201` für die Priorität bzw. Nummer der Tabelle, `wg_2` und `wg_3` sind frei wählbare Namen, die dann in den WireGuard-Konfigurationen verwendet werden.
 
-```
-vpnvpn1:    10.63.1.1/30
-vpnvpn2:    10.63.1.5/30
-vpnvpn3:    10.63.1.9/30
-vpnvpn4:    10.63.1.13/30
-vpnvpn5:    10.63.1.17/30
-```
+## Schlüsselgenerierung 🔑🧾📥
 
-Die Verteilung der IPv6-Adressen ist im Wiki unter http://wireless.subsignal.org/index.php?title=IP-System#Wie_kann_die_Verteilung_aussehen beschrieben.
+Jeder Knoten benötigt ein eigenes Schlüsselpaar: 🔁📋🧰
 
-momentan ist folgendes aktiv (id: domain = ip -> admin)
-```
-vpn1: weimarnetz.de = 77.87.48.19 -> Andi
-vpn2: 2.v.weimarnetz.de = 176.9.46.7 -> Andi/UFO
-vpn3: weimarnetz/test.vm = 77.87.48.35 -> Andi
-vpn5: hosteurope = 80.237.195.246 -> Andi 
+```bash
+wg genkey | tee privatekey | wg pubkey > publickey
 ```
 
-Konzept
-=======
+* `privatekey`: bleibt auf dem jeweiligen Host
+* `publickey`: wird im Peer-Abschnitt auf dem jeweils anderen Knoten eingetragen
 
-1. VPN-Server
-  * Wir numerieren die DNS-Namen unserer Server durch,
-vpn1.weimarnetz.de .. vpnX.weimarnetz.de
-  * auf jedem der Server legen wir für jeden Router die Konfiguration
-schon im Vorfeld an, 1000 Tap-Devices, 1000 OLSR-Devices. Somit kann
-jeder Router ohne Neustart des VPNs auf dem Rootserver eine Verbindung
-aufbauen, die anderen Verbindungen werden nicht gestört
-2. Router
-  * das Tap-Device tap0 und die OLSR-Config wird standardmäßig
-eingerichtet, damit muss auch am Router nichts neu gestartet werden
-nachdem die Verbindung hergestellt wurde
-  * Durch die Anlage der Devices auf dem Rootserver ist auch die
-Registrierung nicht mehr notwendig
-3. Ablauf
-  1. Falls ein direkter Internetzugang vorliegt: Router pingt mit timeout
-von 250ms vpn1-vpn10 durch, dauert also 2,5 Sekunden. Der Server mit der
-schnellsten Antwortzeit gewinnt. 10 VPN-Server könnten wir
-perspektivisch einsetzen. Per DNS kann man die Namen auf andere Server
-zeigen lassen
-  2. Der Router muss sich zwar nicht registrieren, fragt den Server aber
-nach seiner Konfiguration. So können wir die Router schön dumm lassen
-und müssen kein Firmwareupdate machen, falls sich etwas ändert. Die
-Antwort kann so aussehen:
+## Beispielkonfiguration: Spoke 💻🌍📡
 
-{
-  "server" : "vpn1.weimarnetz.de",
-  "port_vtun_nossl_nolzo": "5001",
-  "port_vtun_nossl_lzo": "5002",
-  "port_vtun_ssl_lzo": "5003",
-  "maxmtu": "1452",
-  "clients": "23",
-  "country": "DE",
-}
+```ini
+[Interface]
+PrivateKey = <PRIVATE_KEY>
+Address = 10.63.1.5/30
+Table = off
 
-Es können auch noch weitere Informationen des Servers aufgenommen
-werden, mir fallen im Moment nur keine weiteren ein. Der country-code
-wird von http://en.wikipedia.org/wiki/ISO_3166-2 genommen. Auf diese
-Weise hat der Nutzer evtl. die Chance ein nichtdeutsches Youtube zu bekommen.
-  3. Danach verbindet sich der Router wie gehabt und setzt die Routen und
-alles wird gut.
+[Peer]
+PublicKey = <HUB_PUBLIC_KEY>
+AllowedIPs = 10.63.1.4/30, 10.63.0.0/16, 10.64.0.0/16
+Endpoint = <HUB_PUBLIC_IP>:51192
+PersistentKeepalive = 20
+```
+
+* `Table = off`: verhindert, dass WireGuard automatisch Routen in den main table schreibt 🛑📉📘
+
+---
+
+## Beispielkonfiguration: Hub (mit Policy Routing) 🖥️🏛️🗂️
+
+```ini
+[Interface]
+PrivateKey = <PRIVATE_KEY>
+Address = 10.63.1.6/30
+Table = off
+PostUp = ip route add 10.63.0.0/16 dev wg2 table wg_2
+PostUp = ip route add 10.64.0.0/16 dev wg2 table wg_2
+PostUp = ip rule add from 10.63.1.6/32 lookup wg_2 priority 100
+PostDown = ip rule del from 10.63.1.6/32 lookup wg_2 priority 100
+PostDown = ip route del 10.63.0.0/16 dev wg2 table wg_2
+PostDown = ip route del 10.64.0.0/16 dev wg2 table wg_2
+ListenPort = 51192
+
+[Peer]
+PublicKey = <SPOKE_PUBLIC_KEY>
+AllowedIPs = 10.63.1.5/32, 10.63.1.4/30, 10.63.0.0/16, 10.64.0.0/16
+Endpoint = <SPOKE_PUBLIC_IP>:PORT
+```
+
+* Auch hier wird `Table = off` genutzt. 🚫🗃️🔧
+* Das Routing geschieht ausschließlich über benutzerdefinierte Routingtabellen (`wg_2`, `wg_3`, …). 🗺️📄📈
+* Die `ip rule`-Einträge sorgen dafür, dass ausgehender Verkehr der Interface-IP (z. B. `10.63.1.6`) die passende Routingtabelle nutzt. 🧭📍📌
+
+
+## Hinweise zur Routing-Konfiguration 📝🛠️🔍
+
+* Die Routen für das WireGuard-Transfernetz (z. B. `10.63.1.4/30`) müssen manuell gesetzt werden, wenn `Table = off` verwendet wird. 🧮👷🧱
+* Der `AllowedIPs`-Eintrag dient sowohl als Access Control als auch zur Routing-Entscheidung. Mit `Table = off` kann man hier großzügiger sein, ohne Konflikte im `main` Routing Table zu erzeugen. 🛑🗺️🔀
+* OLSR schreibt seine dynamischen Routen weiterhin in `main` – das kann beibehalten werden. 🔄📘✔️
+
+## fastd — Einfaches Layer-2 VPN für die Spokes 🔄🔗🎛️
+
+`fastd` ist ein einfaches, schnelles Layer-2 VPN, das in vielen Freifunk-Netzwerken als Tunnel für die eigentlichen Clients genutzt wird. Über `fastd` verbinden sich die Clients der Spokes, und über WireGuard werden die Spokes untereinander (zum Hub) verbunden.
+
+### Beispiel fastd-Konfiguration (Spoke)
+
+```bash
+# /etc/fastd/fastd.conf
+bind 0.0.0.0:10000;
+interface "fastd_mesh";
+user "nobody";
+mode tap;
+method "null";
+method "null@l2tp";
+#offload l2tp yes;
+mtu 1280;
+secret "...";
+log level debug;
+#folgende Zeile sorgt dafuer das jeder Peer akzeptiert wird
+on verify "logger $PEER_NAME && true";
+persist interface no;
+include peers from "peers";
+
+on up "
+  logger \"$LOCAL_ADDRESS peer: $PEER_NAME $PEER_KEY\"
+  ip a a <<IP_ADDRESS>>/16 dev $INTERFACE
+  ip link set up fastd_mesh
+";
+on down "
+  logger \"$LOCAL_ADDRESS peer: $PEER_NAME $PEER_KEY\"
+  ip a d <<IP_ADDRESS>>/16 dev $INTERFACE
+  ip link set down fastd_mesh
+";
+
+```
+<<IP_ADDRESS>> muss durch die für den jeweiligen Spoke gültige Adresse ersetzt werden (10.63.0.x/16).
+
+### fastd starten / stoppen
+
+```bash
+systemctl start fastd
+systemctl enable fastd
+systemctl status fastd
+```
+
+## Weiteres 📚🧩⏳
+
+* OLSR-Config
